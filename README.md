@@ -194,17 +194,32 @@ Visit `http://localhost:3000`. The default API base is `http://localhost:8000/ap
 
 See `.env.example` and `frontend/.env.local.example` for the full local templates. Never commit `.env`, `.env.local`, API keys, production database URLs, or real user data.
 
-## Deploy with Render
+## Deploy for free with Vercel, Render, and Neon
 
-The root [`render.yaml`](render.yaml) describes three services in the Singapore region: a Next.js web service, a FastAPI API service, and managed PostgreSQL. It selects persistent, always-on plans. The Blueprint generates `JWT_SECRET` and prompts for `GEMINI_API_KEY` as a secret during initial setup.
+The public GitHub repository can be connected to Vercel for the Next.js frontend and Render for the FastAPI API. The API uses PostgreSQL, so this setup uses Neon for the database rather than Render's free Postgres: Render's free Postgres expires after 30 days. The free tiers are suitable for personal demos and low-traffic experiments, not a production service with uptime or backup guarantees. Render free web services sleep after 15 minutes idle and can take about a minute to wake; Neon Free currently includes usage limits and compute scales down when idle. Vercel Hobby is for personal, non-commercial use. Check the providers' current limits before launch.
 
-1. Push this repository to a private GitHub repository.
-2. In Render, create a new Blueprint and select the repository.
-3. Review the services, regions, health checks, database storage, and the estimated recurring charge.
-4. Enter the Gemini API key only in Render's secret field if Gemini is to be enabled.
-5. Apply the Blueprint and wait for the frontend and API health checks to pass.
+### 1. Create a Neon database
 
-The web service's `NEXT_PUBLIC_API_URL`, API `FRONTEND_ORIGIN`, database URL, and health-check paths are defined in the Blueprint. For a custom domain, update the origin and API URL to the deployed domains and redeploy. Keep the database private and use TLS for all public traffic.
+Create a free PostgreSQL project in [Neon](https://neon.tech/), choose a region near Singapore/India if available, and copy its pooled connection string. Keep the password private. For SQLAlchemy, use the URI in the provider's format; the backend normalizes `postgres://` and `postgresql://` to the installed psycopg 3 driver.
+
+### 2. Deploy the API to Render
+
+1. In Render, create a Blueprint from this public GitHub repository and use the root [`render.yaml`](render.yaml).
+2. Confirm that the plan uses the **Free** web service and creates no paid database or persistent disk.
+3. When prompted, set `DATABASE_URL` to the Neon connection string and `FRONTEND_ORIGIN` to the Vercel site's final `https://...vercel.app` origin. Render generates `JWT_SECRET` for the service.
+4. Apply the Blueprint and wait for `https://<render-service>.onrender.com/health` to report a healthy database connection.
+5. Optionally add `GEMINI_API_KEY` as a secret in Render to enable Gemini roadmap personalization. The deterministic roadmap generator works without it.
+
+The free Render service may have cold starts, restarts, limited monthly runtime, and no persistent local disk. Keep all durable user and roadmap data in PostgreSQL, and monitor Neon and Render quotas. Do not use a Render Free Postgres database for durable user data because it expires after 30 days.
+
+### 3. Deploy the frontend to Vercel
+
+1. Import `amankumar84912-lang/PathForge-AI` from GitHub as a new Vercel project.
+2. Set **Root Directory** to `frontend` and keep the Next.js framework preset.
+3. Add `NEXT_PUBLIC_API_URL` for Production, Preview, and Development as `https://<render-service>.onrender.com/api/v1`.
+4. Deploy. Then set the Render `FRONTEND_ORIGIN` environment variable to the Vercel production origin and redeploy the Render API so browser requests pass its CORS and origin checks.
+
+After both deployments are healthy, register a new learner account and create a roadmap. Vercel builds on pushes to the connected GitHub branch. Render auto-deploys the API from the Blueprint branch. Never commit `.env`, API credentials, database URLs, or JWT secrets.
 
 ## API overview
 
@@ -309,4 +324,3 @@ docker-compose.yml      Local multi-service development stack
 ## License
 
 No open-source license is currently included. Unless the repository owner adds a license, the source remains subject to the rights reserved by its copyright holder.
-

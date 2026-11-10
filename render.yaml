@@ -1,49 +1,22 @@
-projects:
-  - name: PathForge AI
-    environments:
-      - name: production
-        services:
-          - type: web
-            name: pathforge-ai-amank-api
-            runtime: docker
-            region: singapore
-            plan: 0.5c-512mb
-            dockerfilePath: ./backend/Dockerfile
-            dockerContext: ./backend
-            healthCheckPath: /health
-            envVars:
-              - key: DATABASE_URL
-                fromDatabase:
-                  name: pathforge-ai-amank-db
-                  property: connectionString
-              - key: ENVIRONMENT
-                value: production
-              - key: FRONTEND_ORIGIN
-                value: https://pathforge-ai-amank-web.onrender.com
-              - key: JWT_SECRET
-                generateValue: true
-              - key: GEMINI_API_KEY
-                sync: false
-              - key: GEMINI_MODEL
-                value: gemini-3.5-flash-lite
-              - key: AI_TIMEOUT_SECONDS
-                value: "30"
-          - type: web
-            name: pathforge-ai-amank-web
-            runtime: docker
-            region: singapore
-            plan: 0.5c-512mb
-            dockerfilePath: ./frontend/Dockerfile
-            dockerContext: ./frontend
-            healthCheckPath: /
-            envVars:
-              - key: NEXT_PUBLIC_API_URL
-                value: https://pathforge-ai-amank-api.onrender.com/api/v1
-        databases:
-          - name: pathforge-ai-amank-db
-            databaseName: pathforge
-            user: pathforge
-            region: singapore
-            plan: 0.1c-256mb
-            diskSizeGB: 1
-            postgresMajorVersion: "16"
+services:
+  - type: web
+    name: pathforge-ai-amank-api
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: AI_TIMEOUT_SECONDS
+        value: "30"
