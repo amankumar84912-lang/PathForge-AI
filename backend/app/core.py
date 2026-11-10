@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     access_token_minutes: int = 15
     refresh_token_days: int = 14
     frontend_origin: str = "http://localhost:3000"
+    frontend_origins: str = ""
     environment: str = "development"
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
@@ -31,7 +32,14 @@ class Settings(BaseSettings):
 
     @property
     def allowed_frontend_origins(self) -> list[str]:
-        origins = {self.frontend_origin.rstrip("/")}
+        origins = {
+            origin.strip().rstrip("/")
+            for origin in (self.frontend_origin, *self.frontend_origins.split(","))
+            if origin.strip()
+        }
+        if self.environment.lower() == "production":
+            # The deployed learner frontend uses this stable Vercel origin.
+            origins.add("https://pathforge-ai.vercel.app")
         # Local dev servers may be opened through either loopback hostname.
         if self.environment.lower() != "production":
             loopback_pairs = {
