@@ -38,8 +38,12 @@ class Settings(BaseSettings):
             if origin.strip()
         }
         if self.environment.lower() == "production":
-            # The deployed learner frontend uses this stable Vercel origin.
-            origins.add("https://pathforge-ai.vercel.app")
+            # Keep both the original and current production Vercel aliases
+            # available while the old domain is retired.
+            origins.update({
+                "https://pathforge-ai.vercel.app",
+                "https://pathforge-ai-one.vercel.app",
+            })
         # Local dev servers may be opened through either loopback hostname.
         if self.environment.lower() != "production":
             loopback_pairs = {
