@@ -12,13 +12,18 @@ def normalize_database_url(database_url: str) -> str:
     their connection strings. Older libpq builds reject that value, so prefer
     channel binding when supported and keep ``sslmode=require`` intact.
     """
-    url = make_url(database_url)
+    # Dashboard secrets are sometimes pasted with shell/.env quote marks.
+    url = make_url(database_url.strip().strip("\"'"))
     if url.drivername in {"postgres", "postgresql"}:
         url = url.set(drivername="postgresql+psycopg")
 
     if url.drivername == "postgresql+psycopg":
         query = dict(url.query)
-        if query.get("channel_binding") == "require":
+        if "channel_binding" in query:
+            # Psycopg/libpq versions in the deployment image can reject
+            # `require` (including a quoted value copied from a .env line).
+            # `prefer` keeps channel binding when supported and falls back
+            # otherwise; TLS remains enforced by sslmode=require.
             query["channel_binding"] = "prefer"
             url = url.set(query=query)
         return url.render_as_string(hide_password=False)
