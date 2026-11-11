@@ -1,5 +1,9 @@
 # PathForge AI
 
+## Live application
+
+Visit [PathForge AI](https://pathforge-ai-github.vercel.app).
+
 **Turn a career goal into a practical learning plan.** PathForge AI helps learners see which skills they need, what to learn first, and how to make steady progress toward a role.
 
 PathForge combines a curated career and skill catalog with transparent, deterministic analysis. When a Gemini API key is configured, the app can use Gemini to personalize roadmap language and tasks. Generated content is validated against the app's schemas and career context before it is saved. Without an AI key, the deterministic local planner still creates a usable roadmap.
